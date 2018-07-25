@@ -1,0 +1,119 @@
+<html>
+
+<head>
+    <title>Demo Cloud Firestore</title>
+    <script src="https://www.gstatic.com/firebasejs/5.2.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/5.2.0/firebase-firestore.js"></script>
+</head>
+
+<body>
+    <div>input</div>
+    <div>
+        <p>
+            id:
+            <input type="text" id="id" />
+        </p>
+        <p>
+            name:
+            <input type="text" id="name" />
+        </p>
+        <p>
+            age:
+            <input type="number" id="age" />
+        </p>
+        <p>
+            description:
+            <input type="text" id="description" />
+        </p>
+    </div>
+    <div>
+        <button id="save">Save</button>
+        <button id="saveWithId">Save With Id</button>
+        <button id="deleteWithId">Delete With Id</button>
+        <button id="removeAge">Remove Age With Id</button>
+    </div>
+    <div>output</div>
+    <div>
+        <textarea id="outputArea" rows="20" cols="100"></textarea>
+        <button id="loadButton">get all</button>
+    </div>
+</body>
+<script>
+    firebase.initializeApp({
+        apiKey: 'AIzaSyAO4ET3zIYLYdwv-In1ILWF0GXYiJwJYmw',
+        projectId: 'fir-ccdf5'
+    });
+
+    var db = firebase.firestore();
+
+    var collectionRef = db.collection("users")
+    collectionRef.onSnapshot(function (col) {
+        var area = document.getElementById("outputArea");
+        var docArray = [];
+        col.forEach((doc) => {
+            docArray.push({ id: doc.id, data: doc.data() });
+        });
+        area.innerText = JSON.stringify(docArray, null, 4);
+    });
+
+    function createInputDoc() {
+        return {
+            name: document.getElementById("name").value,
+            age: document.getElementById("age").value,
+            description: document.getElementById("description").value
+        }
+    }
+
+    function getInputId() {
+        return document.getElementById("id").value;
+    }
+
+    function addDoc() {
+        db.collection("users").add(createInputDoc());
+    }
+
+    function addDocWithID() {
+        db.collection("users").doc(getInputId()).set(
+            createInputDoc()
+        ).then(function (docRef) {
+            console.log("return ID: ", docRef);
+        }).catch(function (error) {
+            console.error("Error: ", error);
+        });
+    }
+
+    function deleteDoc() {
+        db.collection("users").doc(getInputId()).delete().then(function () {
+            console.log("Document deleted");
+        }).catch(function (error) {
+            console.error("Error: ", error);
+        });
+    }
+
+    function deleteAgeField() {
+        db.collection("users").doc(getInputId()).update({
+            age: firebase.firestore.FieldValue.delete()
+        });
+    }
+
+    function getAllDoc() {
+        db.collection("users").get().then(function (querySnapshot) {
+            var area = document.getElementById("outputArea");
+            var docArray = [];
+            querySnapshot.forEach((doc) => {
+                docArray.push({ id: doc.id, data: doc.data() });
+            });
+            area.innerText = JSON.stringify(docArray, null, 4);
+        });
+    }
+
+
+
+    document.getElementById("save").addEventListener("click", addDoc);
+    document.getElementById("saveWithId").addEventListener("click", addDocWithID);
+    document.getElementById("deleteWithId").addEventListener("click", deleteDoc);
+    document.getElementById("removeAge").addEventListener("click", deleteAgeField);
+    document.getElementById("loadButton").addEventListener("click", getAllDoc);
+</script>
+
+</html>
